@@ -1,3 +1,12 @@
+//! Integration tests for SSE parsing.
+//!
+//! These tests require internet access to reach external SSE test endpoints.
+//! They are marked as `#[ignore]` by default and can be run with:
+//!
+//! ```bash
+//! cargo test --test sse_test -- --ignored
+//! ```
+
 use ag_ui_client::sse::SseResponseExt;
 use futures::StreamExt;
 use reqwest::Client;
