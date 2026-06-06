@@ -254,6 +254,80 @@ where
         Ok(AgentStateMutation::default())
     }
 
+    // Reasoning events
+    async fn on_reasoning_start_event(
+        &self,
+        event: &ReasoningStartEvent,
+        params: AgentSubscriberParams<'async_trait, StateT, FwdPropsT>,
+    ) -> Result<AgentStateMutation<StateT>, AgentError> {
+        Ok(AgentStateMutation::default())
+    }
+
+    async fn on_reasoning_end_event(
+        &self,
+        event: &ReasoningEndEvent,
+        params: AgentSubscriberParams<'async_trait, StateT, FwdPropsT>,
+    ) -> Result<AgentStateMutation<StateT>, AgentError> {
+        Ok(AgentStateMutation::default())
+    }
+
+    async fn on_reasoning_message_start_event(
+        &self,
+        event: &ReasoningMessageStartEvent,
+        params: AgentSubscriberParams<'async_trait, StateT, FwdPropsT>,
+    ) -> Result<AgentStateMutation<StateT>, AgentError> {
+        Ok(AgentStateMutation::default())
+    }
+
+    async fn on_reasoning_message_content_event(
+        &self,
+        event: &ReasoningMessageContentEvent,
+        params: AgentSubscriberParams<'async_trait, StateT, FwdPropsT>,
+    ) -> Result<AgentStateMutation<StateT>, AgentError> {
+        Ok(AgentStateMutation::default())
+    }
+
+    async fn on_reasoning_message_end_event(
+        &self,
+        event: &ReasoningMessageEndEvent,
+        params: AgentSubscriberParams<'async_trait, StateT, FwdPropsT>,
+    ) -> Result<AgentStateMutation<StateT>, AgentError> {
+        Ok(AgentStateMutation::default())
+    }
+
+    async fn on_reasoning_message_chunk_event(
+        &self,
+        event: &ReasoningMessageChunkEvent,
+        params: AgentSubscriberParams<'async_trait, StateT, FwdPropsT>,
+    ) -> Result<AgentStateMutation<StateT>, AgentError> {
+        Ok(AgentStateMutation::default())
+    }
+
+    async fn on_reasoning_encrypted_value_event(
+        &self,
+        event: &ReasoningEncryptedValueEvent,
+        params: AgentSubscriberParams<'async_trait, StateT, FwdPropsT>,
+    ) -> Result<AgentStateMutation<StateT>, AgentError> {
+        Ok(AgentStateMutation::default())
+    }
+
+    // Activity events
+    async fn on_activity_snapshot_event(
+        &self,
+        event: &ActivitySnapshotEvent<StateT>,
+        params: AgentSubscriberParams<'async_trait, StateT, FwdPropsT>,
+    ) -> Result<AgentStateMutation<StateT>, AgentError> {
+        Ok(AgentStateMutation::default())
+    }
+
+    async fn on_activity_delta_event(
+        &self,
+        event: &ActivityDeltaEvent,
+        params: AgentSubscriberParams<'async_trait, StateT, FwdPropsT>,
+    ) -> Result<AgentStateMutation<StateT>, AgentError> {
+        Ok(AgentStateMutation::default())
+    }
+
     // State changes
     async fn on_messages_changed(
         &self,

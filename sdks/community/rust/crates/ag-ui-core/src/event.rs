@@ -56,11 +56,29 @@ pub enum EventType {
     StepStarted,
     /// Event indicating that a step has finished
     StepFinished,
+    /// Event indicating the start of a reasoning process
+    ReasoningStart,
+    /// Event indicating the end of a reasoning process
+    ReasoningEnd,
+    /// Event indicating the start of a reasoning message
+    ReasoningMessageStart,
+    /// Event containing a piece of reasoning message content
+    ReasoningMessageContent,
+    /// Event indicating the end of a reasoning message
+    ReasoningMessageEnd,
+    /// Event containing a chunk of reasoning message content
+    ReasoningMessageChunk,
+    /// Event containing encrypted reasoning value
+    ReasoningEncryptedValue,
+    /// Event containing a snapshot of an activity
+    ActivitySnapshot,
+    /// Event containing a delta of an activity
+    ActivityDelta,
 }
 
 /// Base event for all events in the Agent User Interaction Protocol.
 /// Contains common fields that are present in all event types.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct BaseEvent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timestamp: Option<f64>,
@@ -330,6 +348,114 @@ pub struct StepFinishedEvent {
     pub step_name: String,
 }
 
+/// Event indicating the start of a reasoning process.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReasoningStartEvent {
+    #[serde(flatten)]
+    pub base: BaseEvent,
+    #[serde(rename = "messageId")]
+    pub message_id: MessageId,
+}
+
+/// Event indicating the end of a reasoning process.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReasoningEndEvent {
+    #[serde(flatten)]
+    pub base: BaseEvent,
+    #[serde(rename = "messageId")]
+    pub message_id: MessageId,
+}
+
+/// Event indicating the start of a reasoning message.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReasoningMessageStartEvent {
+    #[serde(flatten)]
+    pub base: BaseEvent,
+    #[serde(rename = "messageId")]
+    pub message_id: MessageId,
+    #[serde(default = "Role::reasoning")]
+    pub role: Role,
+}
+
+/// Event containing a piece of reasoning message content.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReasoningMessageContentEvent {
+    #[serde(flatten)]
+    pub base: BaseEvent,
+    #[serde(rename = "messageId")]
+    pub message_id: MessageId,
+    pub delta: String,
+}
+
+/// Event indicating the end of a reasoning message.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReasoningMessageEndEvent {
+    #[serde(flatten)]
+    pub base: BaseEvent,
+    #[serde(rename = "messageId")]
+    pub message_id: MessageId,
+}
+
+/// Event containing a chunk of reasoning message content.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReasoningMessageChunkEvent {
+    #[serde(flatten)]
+    pub base: BaseEvent,
+    #[serde(rename = "messageId", skip_serializing_if = "Option::is_none")]
+    pub message_id: Option<MessageId>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delta: Option<String>,
+}
+
+/// Subtype for reasoning encrypted value events.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReasoningEncryptedValueSubtype {
+    #[serde(rename = "tool-call")]
+    ToolCall,
+    #[serde(rename = "message")]
+    Message,
+}
+
+/// Event containing encrypted reasoning value.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReasoningEncryptedValueEvent {
+    #[serde(flatten)]
+    pub base: BaseEvent,
+    pub subtype: ReasoningEncryptedValueSubtype,
+    #[serde(rename = "entityId")]
+    pub entity_id: String,
+    #[serde(rename = "encryptedValue")]
+    pub encrypted_value: String,
+}
+
+/// Event containing a snapshot of an activity.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = ""))]
+pub struct ActivitySnapshotEvent<StateT: AgentState = JsonValue> {
+    #[serde(flatten)]
+    pub base: BaseEvent,
+    #[serde(rename = "messageId")]
+    pub message_id: MessageId,
+    #[serde(rename = "activityType")]
+    pub activity_type: String,
+    pub content: StateT,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub replace: Option<bool>,
+}
+
+/// Event containing a delta of an activity.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ActivityDeltaEvent {
+    #[serde(flatten)]
+    pub base: BaseEvent,
+    #[serde(rename = "messageId")]
+    pub message_id: MessageId,
+    #[serde(rename = "activityType")]
+    pub activity_type: String,
+    pub patch: Vec<JsonValue>,
+}
+
 /// Union of all possible events in the Agent User Interaction Protocol.
 /// This enum represents the full set of events that can be exchanged
 /// between the agent and the client.
@@ -433,6 +559,33 @@ pub enum Event<StateT: AgentState = JsonValue> {
     /// Signals the completion of a step within an agent run.
     /// Contains the name of the completed step.
     StepFinished(StepFinishedEvent),
+
+    /// Signals the start of a reasoning process.
+    ReasoningStart(ReasoningStartEvent),
+
+    /// Signals the end of a reasoning process.
+    ReasoningEnd(ReasoningEndEvent),
+
+    /// Signals the start of a reasoning message.
+    ReasoningMessageStart(ReasoningMessageStartEvent),
+
+    /// Represents a chunk of content being added to an in-progress reasoning message.
+    ReasoningMessageContent(ReasoningMessageContentEvent),
+
+    /// Signals the completion of a reasoning message.
+    ReasoningMessageEnd(ReasoningMessageEndEvent),
+
+    /// Represents a complete or partial reasoning message in a single event.
+    ReasoningMessageChunk(ReasoningMessageChunkEvent),
+
+    /// Represents an encrypted reasoning value.
+    ReasoningEncryptedValue(ReasoningEncryptedValueEvent),
+
+    /// Provides a complete snapshot of an activity.
+    ActivitySnapshot(ActivitySnapshotEvent<StateT>),
+
+    /// Provides incremental changes to an activity.
+    ActivityDelta(ActivityDeltaEvent),
 }
 
 impl<StateT: AgentState> Event<StateT> {
@@ -463,6 +616,15 @@ impl<StateT: AgentState> Event<StateT> {
             Event::RunError(_) => EventType::RunError,
             Event::StepStarted(_) => EventType::StepStarted,
             Event::StepFinished(_) => EventType::StepFinished,
+            Event::ReasoningStart(_) => EventType::ReasoningStart,
+            Event::ReasoningEnd(_) => EventType::ReasoningEnd,
+            Event::ReasoningMessageStart(_) => EventType::ReasoningMessageStart,
+            Event::ReasoningMessageContent(_) => EventType::ReasoningMessageContent,
+            Event::ReasoningMessageEnd(_) => EventType::ReasoningMessageEnd,
+            Event::ReasoningMessageChunk(_) => EventType::ReasoningMessageChunk,
+            Event::ReasoningEncryptedValue(_) => EventType::ReasoningEncryptedValue,
+            Event::ActivitySnapshot(_) => EventType::ActivitySnapshot,
+            Event::ActivityDelta(_) => EventType::ActivityDelta,
         }
     }
 
@@ -493,6 +655,15 @@ impl<StateT: AgentState> Event<StateT> {
             Event::RunError(e) => e.base.timestamp,
             Event::StepStarted(e) => e.base.timestamp,
             Event::StepFinished(e) => e.base.timestamp,
+            Event::ReasoningStart(e) => e.base.timestamp,
+            Event::ReasoningEnd(e) => e.base.timestamp,
+            Event::ReasoningMessageStart(e) => e.base.timestamp,
+            Event::ReasoningMessageContent(e) => e.base.timestamp,
+            Event::ReasoningMessageEnd(e) => e.base.timestamp,
+            Event::ReasoningMessageChunk(e) => e.base.timestamp,
+            Event::ReasoningEncryptedValue(e) => e.base.timestamp,
+            Event::ActivitySnapshot(e) => e.base.timestamp,
+            Event::ActivityDelta(e) => e.base.timestamp,
         }
     }
 }

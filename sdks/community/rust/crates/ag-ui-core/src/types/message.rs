@@ -1,6 +1,7 @@
 use crate::types::ids::{MessageId, ToolCallId};
 use crate::types::tool::ToolCall;
 use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
 
 /// A generated function call from a model
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -19,6 +20,8 @@ pub enum Role {
     Assistant,
     User,
     Tool,
+    Activity,
+    Reasoning,
 }
 
 // Utility methods for serde defaults
@@ -37,6 +40,12 @@ impl Role {
     }
     pub(crate) fn tool() -> Self {
         Self::Tool
+    }
+    pub(crate) fn activity() -> Self {
+        Self::Activity
+    }
+    pub(crate) fn reasoning() -> Self {
+        Self::Reasoning
     }
 }
 
@@ -208,6 +217,55 @@ impl ToolMessage {
     }
 }
 
+/// An activity message for structured progress updates.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ActivityMessage {
+    pub id: MessageId,
+    #[serde(default = "Role::activity")]
+    pub role: Role,
+    #[serde(rename = "activityType")]
+    pub activity_type: String,
+    pub content: JsonValue,
+}
+
+impl ActivityMessage {
+    pub fn new(id: impl Into<MessageId>, activity_type: String, content: JsonValue) -> Self {
+        Self {
+            id: id.into(),
+            role: Role::Activity,
+            activity_type,
+            content,
+        }
+    }
+}
+
+/// A reasoning message for chain-of-thought content.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReasoningMessage {
+    pub id: MessageId,
+    #[serde(default = "Role::reasoning")]
+    pub role: Role,
+    pub content: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub encrypted_value: Option<String>,
+}
+
+impl ReasoningMessage {
+    pub fn new(id: impl Into<MessageId>, content: String) -> Self {
+        Self {
+            id: id.into(),
+            role: Role::Reasoning,
+            content,
+            encrypted_value: None,
+        }
+    }
+
+    pub fn with_encrypted_value(mut self, value: String) -> Self {
+        self.encrypted_value = Some(value);
+        self
+    }
+}
+
 /// Represents the different type of messages that you might receive, but as an enum.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "role", rename_all = "lowercase")]
@@ -247,6 +305,18 @@ pub enum Message {
         #[serde(skip_serializing_if = "Option::is_none")]
         error: Option<String>,
     },
+    Activity {
+        id: MessageId,
+        #[serde(rename = "activityType")]
+        activity_type: String,
+        content: JsonValue,
+    },
+    Reasoning {
+        id: MessageId,
+        content: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        encrypted_value: Option<String>,
+    },
 }
 
 impl Message {
@@ -278,6 +348,16 @@ impl Message {
                 content: content.as_ref().to_string(),
                 tool_call_id: ToolCallId::random(),
                 error: None,
+            },
+            Role::Activity => Self::Activity {
+                id: id.into(),
+                activity_type: String::new(),
+                content: JsonValue::Null,
+            },
+            Role::Reasoning => Self::Reasoning {
+                id: id.into(),
+                content: content.as_ref().to_string(),
+                encrypted_value: None,
             },
         }
     }
@@ -314,6 +394,8 @@ impl Message {
             Message::Assistant { id, .. } => id,
             Message::User { id, .. } => id,
             Message::Tool { id, .. } => id,
+            Message::Activity { id, .. } => id,
+            Message::Reasoning { id, .. } => id,
         }
     }
 
@@ -324,6 +406,8 @@ impl Message {
             Message::Assistant { id, .. } => id,
             Message::User { id, .. } => id,
             Message::Tool { id, .. } => id,
+            Message::Activity { id, .. } => id,
+            Message::Reasoning { id, .. } => id,
         }
     }
 
@@ -334,6 +418,8 @@ impl Message {
             Message::Assistant { .. } => Role::Assistant,
             Message::User { .. } => Role::User,
             Message::Tool { .. } => Role::Tool,
+            Message::Activity { .. } => Role::Activity,
+            Message::Reasoning { .. } => Role::Reasoning,
         }
     }
     pub fn content(&self) -> Option<&str> {
@@ -343,6 +429,8 @@ impl Message {
             Message::User { content, .. } => Some(content),
             Message::Tool { content, .. } => Some(content),
             Message::Assistant { content, .. } => content.as_deref(),
+            Message::Activity { .. } => None,
+            Message::Reasoning { content, .. } => Some(content),
         }
     }
 
@@ -358,6 +446,8 @@ impl Message {
                 }
                 content.as_mut()
             }
+            Message::Activity { .. } => None,
+            Message::Reasoning { content, .. } => Some(content),
         }
     }
 
