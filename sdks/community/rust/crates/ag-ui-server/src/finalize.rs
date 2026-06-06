@@ -35,9 +35,10 @@ use std::collections::HashSet;
 ///
 /// ```rust
 /// use ag_ui_server::finalize::finalize_run_events;
+/// use ag_ui_server::Event;
 /// use ag_ui_core::types::{RunId, ThreadId};
 ///
-/// let mut events = vec![];
+/// let mut events: Vec<Event<serde_json::Value>> = vec![];
 /// finalize_run_events(&mut events, &ThreadId::new("t1"), &RunId::new("r1"));
 /// // events now has RUN_FINISHED appended
 /// ```

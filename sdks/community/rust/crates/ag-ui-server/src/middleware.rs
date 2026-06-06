@@ -11,6 +11,7 @@
 //! use ag_ui_core::event::Event;
 //! use ag_ui_server::AgentResult;
 //! use futures::{stream, StreamExt};
+//! use futures::stream::BoxStream;
 //!
 //! // A simple logging transformer
 //! struct LoggingTransformer;
