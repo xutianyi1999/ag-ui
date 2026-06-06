@@ -46,12 +46,15 @@ impl Agent for EchoAgent {
                 base: base_event(),
                 thread_id: thread_id.clone(),
                 run_id: run_id.clone(),
+                parent_run_id: None,
+                input: None,
             })),
             // Start a text message
             Ok(Event::TextMessageStart(TextMessageStartEvent {
                 base: base_event(),
                 message_id: message_id.clone(),
                 role: Role::Assistant,
+            name: None,
             })),
             // Send message content
             Ok(Event::TextMessageContent(TextMessageContentEvent {
@@ -75,6 +78,7 @@ impl Agent for EchoAgent {
                 thread_id,
                 run_id,
                 result: Some(serde_json::json!({"status": "completed"})),
+                outcome: None,
             })),
         ];
 

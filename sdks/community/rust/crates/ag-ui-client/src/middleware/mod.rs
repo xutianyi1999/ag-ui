@@ -141,6 +141,8 @@ mod tests {
                 },
                 thread_id: ThreadId::new("test-thread"),
                 run_id: RunId::new("test-run"),
+                parent_run_id: None,
+                input: None,
             })),
             Ok(Event::RunFinished(RunFinishedEvent {
                 base: BaseEvent {
@@ -150,6 +152,7 @@ mod tests {
                 thread_id: ThreadId::new("test-thread"),
                 run_id: RunId::new("test-run"),
                 result: None,
+                outcome: None,
             })),
         ];
         Box::pin(stream::iter(events))

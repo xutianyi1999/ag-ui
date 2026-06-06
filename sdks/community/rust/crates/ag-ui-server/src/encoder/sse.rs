@@ -47,6 +47,8 @@ const MAX_EVENT_SIZE: usize = 1024 * 1024;
 ///     base: BaseEvent { timestamp: None, raw_event: None },
 ///     thread_id: ThreadId::new("t1"),
 ///     run_id: RunId::new("r1"),
+///     parent_run_id: None,
+///     input: None,
 /// });
 ///
 /// let bytes = encode_sse(&event).expect("encoding failed");
@@ -156,6 +158,8 @@ mod tests {
             base: base(),
             thread_id: ThreadId::new("thread-123"),
             run_id: RunId::new("run-456"),
+            parent_run_id: None,
+            input: None,
         });
 
         let bytes = encode(&event).expect("encoding should succeed");
@@ -173,6 +177,7 @@ mod tests {
             thread_id: ThreadId::new("t1"),
             run_id: RunId::new("r1"),
             result: Some(serde_json::json!({"answer": 42})),
+            outcome: None,
         });
 
         let bytes = encode(&event).expect("encoding should succeed");
@@ -204,6 +209,7 @@ mod tests {
             base: base(),
             message_id: MessageId::new("msg-1"),
             role: Role::Assistant,
+            name: None,
         });
 
         let content: Event = Event::TextMessageContent(TextMessageContentEvent {
@@ -266,6 +272,8 @@ mod tests {
             },
             thread_id: ThreadId::new("t1"),
             run_id: RunId::new("r1"),
+            parent_run_id: None,
+            input: None,
         });
 
         let bytes = encode(&event).expect("encoding should succeed");
@@ -327,6 +335,8 @@ mod tests {
             base: base(),
             thread_id: ThreadId::new("t1"),
             run_id: RunId::new("r1"),
+            parent_run_id: None,
+            input: None,
         });
 
         let bytes = encode(&event).expect("encoding should succeed");

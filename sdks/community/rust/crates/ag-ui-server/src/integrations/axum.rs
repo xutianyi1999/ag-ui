@@ -574,12 +574,15 @@ mod tests {
                     base: test_base_event(),
                     thread_id: thread_id.clone(),
                     run_id: run_id.clone(),
+                    parent_run_id: None,
+                    input: None,
                 })),
                 Ok(Event::RunFinished(RunFinishedEvent {
                     base: test_base_event(),
                     thread_id,
                     run_id,
                     result: Some(serde_json::json!({"status": "ok"})),
+                    outcome: None,
                 })),
             ];
 

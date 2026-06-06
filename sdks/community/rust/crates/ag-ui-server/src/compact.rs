@@ -126,6 +126,7 @@ mod tests {
                 base: base(),
                 message_id: mid("msg-1"),
                 role: Role::Assistant,
+            name: None,
             }),
         ];
         let len = events.len();
