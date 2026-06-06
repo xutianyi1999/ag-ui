@@ -24,6 +24,8 @@
 //!     base: BaseEvent { timestamp: None, raw_event: None },
 //!     thread_id: ThreadId::new("thread-1"),
 //!     run_id: RunId::new("run-1"),
+//!     parent_run_id: None,
+//!     input: None,
 //! });
 //!
 //! let bytes = encoder.encode(&event).expect("encoding failed");
@@ -259,6 +261,8 @@ mod tests {
             },
             thread_id: ThreadId::new("thread-1"),
             run_id: RunId::new("run-1"),
+            parent_run_id: None,
+            input: None,
         })
     }
 
@@ -271,6 +275,7 @@ mod tests {
             thread_id: ThreadId::new("thread-1"),
             run_id: RunId::new("run-1"),
             result: None,
+            outcome: None,
         })
     }
 

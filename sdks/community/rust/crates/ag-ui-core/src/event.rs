@@ -94,7 +94,9 @@ pub struct TextMessageStartEvent {
     pub base: BaseEvent,
     #[serde(rename = "messageId")]
     pub message_id: MessageId,
-    pub role: Role, // "assistant"
+    pub role: Role, // default "assistant" in TS
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
 }
 
 /// Event containing a piece of text message content.
@@ -301,6 +303,23 @@ pub struct RunStartedEvent {
     pub thread_id: ThreadId,
     #[serde(rename = "runId")]
     pub run_id: RunId,
+    #[serde(rename = "parentRunId", skip_serializing_if = "Option::is_none")]
+    pub parent_run_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input: Option<JsonValue>,
+}
+
+/// Outcome of a successfully-finished run — success or interrupt.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum RunFinishedOutcome {
+    /// Run completed without interruption.
+    Success,
+    /// Run paused for human-in-the-loop input.
+    Interrupt {
+        /// At least one interrupt must be present.
+        interrupts: Vec<crate::types::interrupt::Interrupt>,
+    },
 }
 
 /// Event indicating that a run has finished.
@@ -315,6 +334,9 @@ pub struct RunFinishedEvent {
     pub run_id: RunId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<JsonValue>,
+    /// Structured outcome. Accept null from Python serialization and treat as None.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outcome: Option<RunFinishedOutcome>,
 }
 
 /// Event indicating that a run has encountered an error.
@@ -431,15 +453,14 @@ pub struct ReasoningEncryptedValueEvent {
 
 /// Event containing a snapshot of an activity.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(bound(deserialize = ""))]
-pub struct ActivitySnapshotEvent<StateT: AgentState = JsonValue> {
+pub struct ActivitySnapshotEvent {
     #[serde(flatten)]
     pub base: BaseEvent,
     #[serde(rename = "messageId")]
     pub message_id: MessageId,
     #[serde(rename = "activityType")]
     pub activity_type: String,
-    pub content: StateT,
+    pub content: JsonValue,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub replace: Option<bool>,
 }
@@ -582,7 +603,7 @@ pub enum Event<StateT: AgentState = JsonValue> {
     ReasoningEncryptedValue(ReasoningEncryptedValueEvent),
 
     /// Provides a complete snapshot of an activity.
-    ActivitySnapshot(ActivitySnapshotEvent<StateT>),
+    ActivitySnapshot(ActivitySnapshotEvent),
 
     /// Provides incremental changes to an activity.
     ActivityDelta(ActivityDeltaEvent),
@@ -698,6 +719,7 @@ impl TextMessageStartEvent {
             },
             message_id: message_id.into(),
             role: Role::Assistant,
+            name: None,
         }
     }
 
@@ -708,6 +730,11 @@ impl TextMessageStartEvent {
 
     pub fn with_raw_event(mut self, raw_event: JsonValue) -> Self {
         self.base.raw_event = Some(raw_event);
+        self
+    }
+
+    pub fn with_name(mut self, name: String) -> Self {
+        self.name = Some(name);
         self
     }
 }

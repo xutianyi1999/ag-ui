@@ -236,6 +236,8 @@ mod tests {
             base: base_event(),
             thread_id: ThreadId::new("test"),
             run_id: RunId::new("test"),
+            parent_run_id: None,
+            input: None,
         })
     }
 
@@ -245,6 +247,7 @@ mod tests {
             thread_id: ThreadId::new("test"),
             run_id: RunId::new("test"),
             result: None,
+            outcome: None,
         })
     }
 
@@ -287,6 +290,7 @@ mod tests {
             base: base_event(),
             message_id: MessageId::new("msg1"),
             role: Role::Assistant,
+            name: None,
         })
     }
 

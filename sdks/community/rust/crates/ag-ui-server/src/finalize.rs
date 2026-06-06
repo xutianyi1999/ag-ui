@@ -106,6 +106,7 @@ pub fn finalize_run_events<S: AgentState>(
             thread_id: thread_id.clone(),
             run_id: run_id.clone(),
             result: None,
+            outcome: None,
         }));
     }
 }
@@ -144,6 +145,7 @@ mod tests {
                 base: base(),
                 message_id: mid.clone(),
                 role: Role::Assistant,
+            name: None,
             },
         )];
         let tid = ThreadId::new("t1");
@@ -183,6 +185,7 @@ mod tests {
             thread_id: ThreadId::new("t1"),
             run_id: RunId::new("r1"),
             result: None,
+            outcome: None,
         })];
         let tid = ThreadId::new("t1");
         let rid = RunId::new("r1");
@@ -211,6 +214,7 @@ mod tests {
                 base: base(),
                 message_id: mid.clone(),
                 role: Role::Assistant,
+            name: None,
             }),
             Event::TextMessageEnd(TextMessageEndEvent {
                 base: base(),
@@ -233,6 +237,7 @@ mod tests {
                 base: base(),
                 message_id: mid.clone(),
                 role: Role::Assistant,
+            name: None,
             }),
             Event::ToolCallStart(ToolCallStartEvent {
                 base: base(),

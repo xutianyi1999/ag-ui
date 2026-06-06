@@ -314,7 +314,7 @@ where
     // Activity events
     async fn on_activity_snapshot_event(
         &self,
-        event: &ActivitySnapshotEvent<StateT>,
+        event: &ActivitySnapshotEvent,
         params: AgentSubscriberParams<'async_trait, StateT, FwdPropsT>,
     ) -> Result<AgentStateMutation<StateT>, AgentError> {
         Ok(AgentStateMutation::default())
