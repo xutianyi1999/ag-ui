@@ -129,9 +129,12 @@ pub struct TextMessageChunkEvent {
     pub base: BaseEvent,
     #[serde(rename = "messageId", skip_serializing_if = "Option::is_none")]
     pub message_id: Option<MessageId>,
-    pub role: Role,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role: Option<Role>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub delta: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
 }
 
 /// Event indicating the start of a thinking text message.
@@ -451,6 +454,10 @@ pub struct ReasoningEncryptedValueEvent {
     pub encrypted_value: String,
 }
 
+fn default_true() -> bool {
+    true
+}
+
 /// Event containing a snapshot of an activity.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ActivitySnapshotEvent {
@@ -461,8 +468,8 @@ pub struct ActivitySnapshotEvent {
     #[serde(rename = "activityType")]
     pub activity_type: String,
     pub content: JsonValue,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub replace: Option<bool>,
+    #[serde(default = "default_true")]
+    pub replace: bool,
 }
 
 /// Event containing a delta of an activity.
