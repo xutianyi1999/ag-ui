@@ -1,4 +1,5 @@
 use crate::types::ids::{MessageId, ToolCallId};
+use crate::types::input_content::MessageContent;
 use crate::types::tool::ToolCall;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -188,7 +189,7 @@ pub struct UserMessage {
     pub id: MessageId,
     #[serde(default = "Role::user")]
     pub role: Role, // Always Role::User
-    pub content: String,
+    pub content: MessageContent,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
@@ -196,11 +197,11 @@ pub struct UserMessage {
 }
 
 impl UserMessage {
-    pub fn new(id: impl Into<MessageId>, content: String) -> Self {
+    pub fn new(id: impl Into<MessageId>, content: impl Into<MessageContent>) -> Self {
         Self {
             id: id.into(),
             role: Role::User,
-            content,
+            content: content.into(),
             name: None,
             encrypted_value: None,
         }
@@ -214,6 +215,12 @@ impl UserMessage {
     pub fn with_encrypted_value(mut self, value: String) -> Self {
         self.encrypted_value = Some(value);
         self
+    }
+}
+
+impl From<String> for MessageContent {
+    fn from(s: String) -> Self {
+        MessageContent::Text(s)
     }
 }
 
@@ -336,7 +343,7 @@ pub enum Message {
     },
     User {
         id: MessageId,
-        content: String,
+        content: MessageContent,
         #[serde(skip_serializing_if = "Option::is_none")]
         name: Option<String>,
         #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
@@ -390,7 +397,7 @@ impl Message {
             },
             Role::User => Self::User {
                 id: id.into(),
-                content: content.as_ref().to_string(),
+                content: MessageContent::Text(content.as_ref().to_string()),
                 name: None,
                 encrypted_value: None,
             },
@@ -478,7 +485,10 @@ impl Message {
         match self {
             Message::Developer { content, .. } => Some(content),
             Message::System { content, .. } => Some(content),
-            Message::User { content, .. } => Some(content),
+            Message::User { content, .. } => match content {
+                MessageContent::Text(s) => Some(s),
+                MessageContent::Parts(_) => None,
+            },
             Message::Tool { content, .. } => Some(content),
             Message::Assistant { content, .. } => content.as_deref(),
             Message::Activity { .. } => None,
@@ -490,8 +500,11 @@ impl Message {
         match self {
             Message::Developer { content, .. }
             | Message::System { content, .. }
-            | Message::User { content, .. }
             | Message::Tool { content, .. } => Some(content),
+            Message::User { content, .. } => match content {
+                MessageContent::Text(s) => Some(s),
+                MessageContent::Parts(_) => None,
+            },
             Message::Assistant { content, .. } => {
                 if content.is_none() {
                     *content = Some(String::new());

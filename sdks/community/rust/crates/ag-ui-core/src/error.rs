@@ -22,3 +22,15 @@ pub struct AgUiError {
 }
 
 pub type Result<T> = std::result::Result<T, AgUiError>;
+
+/// Base AG-UI error class.
+/// Equivalent to the TS `AGUIError` class in `@ag-ui/core`.
+#[derive(Error, Debug)]
+#[error("AGUIError: {0}")]
+pub struct AGUIError(pub String);
+
+/// Error raised when `connect()` is not implemented.
+/// Equivalent to the TS `AGUIConnectNotImplementedError` class.
+#[derive(Error, Debug)]
+#[error("Connect not implemented. This method is not supported by the current agent.")]
+pub struct AGUIConnectNotImplementedError;
