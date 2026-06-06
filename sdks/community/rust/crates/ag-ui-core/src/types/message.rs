@@ -175,6 +175,11 @@ impl AssistantMessage {
         self.tool_calls = Some(tool_calls);
         self
     }
+
+    pub fn with_encrypted_value(mut self, value: String) -> Self {
+        self.encrypted_value = Some(value);
+        self
+    }
 }
 
 /// A user message.
