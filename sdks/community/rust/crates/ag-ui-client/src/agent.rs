@@ -97,6 +97,7 @@ where
             id: MessageId::random(),
             content: content.into(),
             name: None,
+            encrypted_value: None,
         });
         self
     }
@@ -192,11 +193,13 @@ where
         let input = RunAgentInput {
             thread_id: ThreadId::random(),
             run_id: params.run_id.clone().unwrap_or_else(RunId::random),
+            parent_run_id: None,
             state: params.state.clone(),
             messages: params.messages.clone(),
             tools: params.tools.clone(),
             context: params.context.clone(),
             forwarded_props: params.forwarded_props.clone(),
+            resume: None,
         };
         let current_message_ids: HashSet<&MessageId> =
             params.messages.iter().map(|m| m.id()).collect();

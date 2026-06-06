@@ -48,6 +48,7 @@ mod tests {
             id: MessageId::random(),
             content: "Hello".to_string(),
             name: None,
+            encrypted_value: None,
         };
 
         let json = serde_json::to_string(&user_msg).unwrap();
@@ -172,6 +173,7 @@ mod tests {
                 content,
                 name,
                 tool_calls,
+                ..
             } => {
                 assert_eq!(id.to_string(), "00000000-0000-0000-0000-000000000000");
                 assert_eq!(
@@ -215,7 +217,7 @@ mod tests {
         assert_eq!(messages.len(), 3);
 
         match &messages[0] {
-            Message::User { id, content, name } => {
+            Message::User { id, content, name, .. } => {
                 assert_eq!(id.to_string(), "00000000-0000-0000-0000-000000000000");
                 assert_eq!(content, "Hello!");
                 assert_eq!(*name, Some("Alice".to_string()));
