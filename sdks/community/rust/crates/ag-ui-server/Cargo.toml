@@ -35,18 +35,18 @@ json-patch = "4"
 tracing = "0.1"
 
 # Axum integration (default feature)
-axum = { version = "0.7", optional = true }
+axum = { version = "0.8", optional = true }
 http = { version = "1", optional = true }
 
 # Protocol buffers (optional)
-prost = { version = "0.13", optional = true }
+prost = { version = "0.14", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full", "test-util"] }
 proptest = "1"
 assert_matches = "1.5"
 tower = { version = "0.5", features = ["util"] }
-axum = { version = "0.7", features = ["macros"] }
+axum = { version = "0.8", features = ["macros"] }
 hyper = { version = "1", features = ["client", "http1"] }
 hyper-util = { version = "0.1", features = ["client", "client-legacy", "http1", "tokio"] }
 http-body-util = "0.1"
