@@ -618,11 +618,13 @@ mod tests {
         let input = RunAgentInput::<serde_json::Value> {
             thread_id: ThreadId::new("test-thread"),
             run_id: RunId::new("test-run"),
+            parent_run_id: None,
             messages: Vec::new(),
             tools: Vec::new(),
             context: Vec::new(),
             forwarded_props: serde_json::Value::Null,
             state: serde_json::Value::Null,
+            resume: None,
         };
 
         let body = serde_json::to_string(&input).expect("input should serialize");

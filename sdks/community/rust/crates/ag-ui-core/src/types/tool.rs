@@ -9,6 +9,8 @@ pub struct ToolCall {
     #[serde(rename = "type")]
     pub call_type: String,
     pub function: FunctionCall,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub encrypted_value: Option<String>,
 }
 
 impl ToolCall {
@@ -17,12 +19,18 @@ impl ToolCall {
             id: id.into(),
             call_type: "function".to_string(),
             function,
+            encrypted_value: None,
         }
+    }
+
+    pub fn with_encrypted_value(mut self, value: String) -> Self {
+        self.encrypted_value = Some(value);
+        self
     }
 }
 
 /// A tool definition.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Tool {
     /// The tool name
     pub name: String,
@@ -30,6 +38,9 @@ pub struct Tool {
     pub description: String,
     /// The tool parameters
     pub parameters: serde_json::Value,
+    /// Arbitrary tool metadata (e.g. a2ui schema)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<JsonValue>,
 }
 
 impl Tool {
@@ -38,6 +49,12 @@ impl Tool {
             name,
             description,
             parameters,
+            metadata: None,
         }
+    }
+
+    pub fn with_metadata(mut self, metadata: JsonValue) -> Self {
+        self.metadata = Some(metadata);
+        self
     }
 }

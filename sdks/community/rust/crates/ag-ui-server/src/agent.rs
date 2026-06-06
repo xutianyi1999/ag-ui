@@ -598,11 +598,13 @@ mod tests {
         let input = RunAgentInput {
             thread_id: ThreadId::new("thread-1"),
             run_id: RunId::new("run-1"),
+            parent_run_id: None,
             state: serde_json::Value::Null,
             messages: vec![],
             tools: vec![],
             context: vec![],
             forwarded_props: serde_json::Value::Null,
+            resume: None,
         };
 
         let result = agent.run(input, ctx).await;
@@ -616,11 +618,13 @@ mod tests {
         let input = RunAgentInput {
             thread_id: ThreadId::new("thread-1"),
             run_id: RunId::new("run-1"),
+            parent_run_id: None,
             state: serde_json::Value::Null,
             messages: vec![],
             tools: vec![],
             context: vec![],
             forwarded_props: serde_json::Value::Null,
+            resume: None,
         };
 
         let result = agent.run(input, ctx).await;

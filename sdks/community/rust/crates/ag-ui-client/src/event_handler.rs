@@ -103,6 +103,7 @@ where
                     content: Some(String::new()),
                     name: None,
                     tool_calls: None,
+                    encrypted_value: None,
                 };
                 self.messages.push(new_message);
                 current_mutation.messages = Some(self.messages.clone());
@@ -199,6 +200,7 @@ where
                         name: e.tool_call_name.clone(),
                         arguments: String::new(),
                     },
+                    encrypted_value: None,
                 };
 
                 if let Some(last_message) = self.messages.last_mut() {
@@ -217,6 +219,7 @@ where
                             .unwrap_or_else(MessageId::random),
                         content: None,
                         name: None,
+                        encrypted_value: None,
                         tool_calls: None,
                     };
                     self.messages.push(new_message);

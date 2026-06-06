@@ -58,6 +58,8 @@ pub struct BaseMessage {
     pub content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+    pub encrypted_value: Option<String>,
 }
 
 /// A developer message.
@@ -70,6 +72,8 @@ pub struct DeveloperMessage {
     pub content: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+    pub encrypted_value: Option<String>,
 }
 
 impl DeveloperMessage {
@@ -79,11 +83,17 @@ impl DeveloperMessage {
             role: Role::Developer,
             content,
             name: None,
+            encrypted_value: None,
         }
     }
 
     pub fn with_name(mut self, name: String) -> Self {
         self.name = Some(name);
+        self
+    }
+
+    pub fn with_encrypted_value(mut self, value: String) -> Self {
+        self.encrypted_value = Some(value);
         self
     }
 }
@@ -97,6 +107,8 @@ pub struct SystemMessage {
     pub content: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+    pub encrypted_value: Option<String>,
 }
 
 impl SystemMessage {
@@ -106,11 +118,17 @@ impl SystemMessage {
             role: Role::System,
             content,
             name: None,
+            encrypted_value: None,
         }
     }
 
     pub fn with_name(mut self, name: String) -> Self {
         self.name = Some(name);
+        self
+    }
+
+    pub fn with_encrypted_value(mut self, value: String) -> Self {
+        self.encrypted_value = Some(value);
         self
     }
 }
@@ -127,6 +145,8 @@ pub struct AssistantMessage {
     pub name: Option<String>,
     #[serde(rename = "toolCalls", skip_serializing_if = "Option::is_none")]
     pub tool_calls: Option<Vec<ToolCall>>,
+    #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+    pub encrypted_value: Option<String>,
 }
 
 impl AssistantMessage {
@@ -137,6 +157,7 @@ impl AssistantMessage {
             content: None,
             name: None,
             tool_calls: None,
+            encrypted_value: None,
         }
     }
 
@@ -165,6 +186,8 @@ pub struct UserMessage {
     pub content: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+    pub encrypted_value: Option<String>,
 }
 
 impl UserMessage {
@@ -174,11 +197,17 @@ impl UserMessage {
             role: Role::User,
             content,
             name: None,
+            encrypted_value: None,
         }
     }
 
     pub fn with_name(mut self, name: String) -> Self {
         self.name = Some(name);
+        self
+    }
+
+    pub fn with_encrypted_value(mut self, value: String) -> Self {
+        self.encrypted_value = Some(value);
         self
     }
 }
@@ -194,6 +223,8 @@ pub struct ToolMessage {
     pub tool_call_id: ToolCallId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+    #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+    pub encrypted_value: Option<String>,
 }
 
 impl ToolMessage {
@@ -208,6 +239,7 @@ impl ToolMessage {
             role: Role::Tool,
             tool_call_id: tool_call_id.into(),
             error: None,
+            encrypted_value: None,
         }
     }
 
@@ -246,7 +278,7 @@ pub struct ReasoningMessage {
     #[serde(default = "Role::reasoning")]
     pub role: Role,
     pub content: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
     pub encrypted_value: Option<String>,
 }
 
@@ -275,12 +307,16 @@ pub enum Message {
         content: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         name: Option<String>,
+        #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+        encrypted_value: Option<String>,
     },
     System {
         id: MessageId,
         content: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         name: Option<String>,
+        #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+        encrypted_value: Option<String>,
     },
     Assistant {
         id: MessageId,
@@ -290,12 +326,16 @@ pub enum Message {
         name: Option<String>,
         #[serde(rename = "toolCalls", skip_serializing_if = "Option::is_none")]
         tool_calls: Option<Vec<ToolCall>>,
+        #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+        encrypted_value: Option<String>,
     },
     User {
         id: MessageId,
         content: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         name: Option<String>,
+        #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+        encrypted_value: Option<String>,
     },
     Tool {
         id: MessageId,
@@ -304,6 +344,8 @@ pub enum Message {
         tool_call_id: ToolCallId,
         #[serde(skip_serializing_if = "Option::is_none")]
         error: Option<String>,
+        #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
+        encrypted_value: Option<String>,
     },
     Activity {
         id: MessageId,
@@ -314,7 +356,7 @@ pub enum Message {
     Reasoning {
         id: MessageId,
         content: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
         encrypted_value: Option<String>,
     },
 }
@@ -326,28 +368,33 @@ impl Message {
                 id: id.into(),
                 content: content.as_ref().to_string(),
                 name: None,
+                encrypted_value: None,
             },
             Role::System => Self::System {
                 id: id.into(),
                 content: content.as_ref().to_string(),
                 name: None,
+                encrypted_value: None,
             },
             Role::Assistant => Self::Assistant {
                 id: id.into(),
                 content: Some(content.as_ref().to_string()),
                 name: None,
                 tool_calls: None,
+                encrypted_value: None,
             },
             Role::User => Self::User {
                 id: id.into(),
                 content: content.as_ref().to_string(),
                 name: None,
+                encrypted_value: None,
             },
             Role::Tool => Self::Tool {
                 id: id.into(),
                 content: content.as_ref().to_string(),
                 tool_call_id: ToolCallId::random(),
                 error: None,
+                encrypted_value: None,
             },
             Role::Activity => Self::Activity {
                 id: id.into(),
