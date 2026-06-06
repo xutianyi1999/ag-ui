@@ -86,8 +86,11 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub mod agent;
+pub mod compact;
 pub mod encoder;
 pub mod error;
+pub mod finalize;
+pub mod middleware;
 pub mod state;
 
 #[cfg(feature = "axum-integration")]
@@ -95,8 +98,10 @@ pub mod integrations;
 
 // Re-export core types for convenience
 pub use agent::{Agent, AgentContext, DynAgent, HealthStatus, RequestMetadata};
+pub use compact::compact_events;
 pub use encoder::{encode_sse, ContentType, EventEncoder};
 pub use error::{AgentError, AgentResult, EncodeError, EncodeResult, StateError, StateResult};
+pub use finalize::finalize_run_events;
 pub use state::{StateManager, StatePatch};
 
 // Re-export the entire ag-ui-core crate for full access
@@ -118,8 +123,10 @@ pub use ag_ui_core::AgentState;
 /// ```
 pub mod prelude {
     pub use crate::agent::{Agent, AgentContext, DynAgent, HealthStatus};
+    pub use crate::compact::compact_events;
     pub use crate::encoder::{ContentType, EventEncoder};
     pub use crate::error::{AgentError, AgentResult, EncodeError, StateError};
+    pub use crate::finalize::finalize_run_events;
     pub use crate::state::{StateManager, StatePatch};
 
     pub use ag_ui_core::event::{BaseEvent, Event};

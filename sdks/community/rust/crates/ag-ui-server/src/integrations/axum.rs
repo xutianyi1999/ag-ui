@@ -72,7 +72,8 @@
 
 use crate::agent::{Agent, AgentContext, HealthStatus, RequestMetadata};
 use crate::encoder::EventEncoder;
-use crate::error::AgentError;
+use crate::error::{AgentError, AgentResult};
+use crate::middleware::{StreamTransformer, TransformerChain};
 use ag_ui_core::event::{BaseEvent, Event, RunErrorEvent};
 use ag_ui_core::types::input::RunAgentInput;
 use axum::body::Body;
@@ -82,7 +83,8 @@ use axum::http::{HeaderMap, Request, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
-use futures::stream::StreamExt;
+use futures::stream::BoxStream;
+use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
 use std::sync::Arc;
@@ -101,18 +103,20 @@ fn base_event_now() -> BaseEvent {
     }
 }
 
-/// Axum application state containing the agent.
+/// Axum application state containing the agent and optional middleware chain.
 ///
 /// This is the shared state passed to all handlers. It wraps your agent
 /// in an `Arc` for thread-safe sharing.
 pub struct AgentState<A: Agent> {
     agent: Arc<A>,
+    transformers: TransformerChain<A::State>,
 }
 
 impl<A: Agent> Clone for AgentState<A> {
     fn clone(&self) -> Self {
         Self {
             agent: Arc::clone(&self.agent),
+            transformers: TransformerChain::new(),
         }
     }
 }
@@ -120,13 +124,32 @@ impl<A: Agent> Clone for AgentState<A> {
 impl<A: Agent> AgentState<A> {
     /// Create new agent state from an Arc-wrapped agent.
     pub fn new(agent: Arc<A>) -> Self {
-        Self { agent }
+        Self {
+            agent,
+            transformers: TransformerChain::new(),
+        }
     }
 
     /// Get a reference to the agent.
     #[must_use]
     pub fn agent(&self) -> &A {
         &self.agent
+    }
+
+    /// Set the transformer chain for this agent.
+    pub fn with_transformers(mut self, chain: TransformerChain<A::State>) -> Self {
+        self.transformers = chain;
+        self
+    }
+
+    /// Get a reference to the transformer chain.
+    pub fn transformers(&self) -> &TransformerChain<A::State> {
+        &self.transformers
+    }
+
+    /// Consume this state and return the transformer chain.
+    pub fn into_transformers(self) -> TransformerChain<A::State> {
+        self.transformers
     }
 }
 
@@ -163,6 +186,7 @@ impl<A: Agent> AgentState<A> {
 pub struct AgentRouter<A: Agent> {
     agent: Arc<A>,
     path_prefix: String,
+    transformers: TransformerChain<A::State>,
 }
 
 impl<A: Agent + 'static> AgentRouter<A> {
@@ -171,6 +195,7 @@ impl<A: Agent + 'static> AgentRouter<A> {
         Self {
             agent,
             path_prefix: String::new(),
+            transformers: TransformerChain::new(),
         }
     }
 
@@ -201,9 +226,41 @@ impl<A: Agent + 'static> AgentRouter<A> {
         self
     }
 
+    /// Add a stream transformer (middleware) to the chain.
+    ///
+    /// Transformers are applied in the order they are added, wrapping
+    /// the event stream before SSE encoding.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use ag_ui_server::integrations::axum::AgentRouter;
+    /// # use ag_ui_server::middleware::FilterToolCallsMiddleware;
+    /// # use std::sync::Arc;
+    /// # struct MyAgent;
+    /// # use ag_ui_server::prelude::*;
+    /// # #[async_trait]
+    /// # impl Agent for MyAgent {
+    /// #     type State = serde_json::Value;
+    /// #     async fn run(&self, _: RunAgentInput<Self::State>, _: AgentContext)
+    /// #         -> AgentResult<BoxStream<'static, AgentResult<Event<Self::State>>>> { todo!() }
+    /// # }
+    /// let router = AgentRouter::new(Arc::new(MyAgent))
+    ///     .with_transformer(FilterToolCallsMiddleware::allow(["search"]))
+    ///     .into_router();
+    /// ```
+    #[must_use]
+    pub fn with_transformer<T: StreamTransformer<A::State> + 'static>(
+        mut self,
+        transformer: T,
+    ) -> Self {
+        self.transformers = self.transformers.push(transformer);
+        self
+    }
+
     /// Build the Axum router with all endpoints configured.
     pub fn into_router(self) -> Router {
-        let state = AgentState::new(self.agent);
+        let state = AgentState::new(self.agent).with_transformers(self.transformers);
 
         let run_path = if self.path_prefix.is_empty() {
             "/".to_string()
@@ -290,17 +347,21 @@ where
     };
 
     // Run the agent
-    let event_stream = match state.agent.run(input, ctx).await {
-        Ok(stream) => stream,
-        Err(e) => {
-            return error_response(StatusCode::INTERNAL_SERVER_ERROR, e.to_string());
-        }
-    };
+    let event_stream: BoxStream<'static, Result<Event<A::State>, AgentError>> =
+        match state.agent.run(input, ctx).await {
+            Ok(stream) => stream,
+            Err(e) => {
+                return error_response(StatusCode::INTERNAL_SERVER_ERROR, e.to_string());
+            }
+        };
 
-    // Create SSE response
+    // Apply middleware transformers (buffered approach for 'static lifetime).
+    let transformers = state.into_transformers();
+    let event_vec: Vec<AgentResult<Event<A::State>>> = transformers.into_apply_buffered(event_stream).await;
+
     let content_type = encoder.content_type();
 
-    let response_stream = event_stream.map(move |result| {
+    let response_stream = futures::stream::iter(event_vec).map(move |result| {
         match result {
             Ok(event) => match encoder.encode(&event) {
                 Ok(bytes) => Ok::<_, Infallible>(bytes),

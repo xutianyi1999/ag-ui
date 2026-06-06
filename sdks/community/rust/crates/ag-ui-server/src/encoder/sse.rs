@@ -122,6 +122,15 @@ fn event_type_str(event_type: ag_ui_core::event::EventType) -> &'static str {
         EventType::RunError => "RUN_ERROR",
         EventType::StepStarted => "STEP_STARTED",
         EventType::StepFinished => "STEP_FINISHED",
+        EventType::ReasoningStart => "REASONING_START",
+        EventType::ReasoningEnd => "REASONING_END",
+        EventType::ReasoningMessageStart => "REASONING_MESSAGE_START",
+        EventType::ReasoningMessageContent => "REASONING_MESSAGE_CONTENT",
+        EventType::ReasoningMessageEnd => "REASONING_MESSAGE_END",
+        EventType::ReasoningMessageChunk => "REASONING_MESSAGE_CHUNK",
+        EventType::ReasoningEncryptedValue => "REASONING_ENCRYPTED_VALUE",
+        EventType::ActivitySnapshot => "ACTIVITY_SNAPSHOT",
+        EventType::ActivityDelta => "ACTIVITY_DELTA",
     }
 }
 

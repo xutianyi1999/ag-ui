@@ -430,6 +430,69 @@ where
                     mutations.push(mutation);
                 }
             }
+            Event::ReasoningStart(e) => {
+                for subscriber in &self.subscribers {
+                    let params = self.to_subscriber_params();
+                    let mutation = subscriber.on_reasoning_start_event(e, params).await?;
+                    mutations.push(mutation);
+                }
+            }
+            Event::ReasoningEnd(e) => {
+                for subscriber in &self.subscribers {
+                    let params = self.to_subscriber_params();
+                    let mutation = subscriber.on_reasoning_end_event(e, params).await?;
+                    mutations.push(mutation);
+                }
+            }
+            Event::ReasoningMessageStart(e) => {
+                for subscriber in &self.subscribers {
+                    let params = self.to_subscriber_params();
+                    let mutation = subscriber.on_reasoning_message_start_event(e, params).await?;
+                    mutations.push(mutation);
+                }
+            }
+            Event::ReasoningMessageContent(e) => {
+                for subscriber in &self.subscribers {
+                    let params = self.to_subscriber_params();
+                    let mutation = subscriber.on_reasoning_message_content_event(e, params).await?;
+                    mutations.push(mutation);
+                }
+            }
+            Event::ReasoningMessageEnd(e) => {
+                for subscriber in &self.subscribers {
+                    let params = self.to_subscriber_params();
+                    let mutation = subscriber.on_reasoning_message_end_event(e, params).await?;
+                    mutations.push(mutation);
+                }
+            }
+            Event::ReasoningMessageChunk(e) => {
+                for subscriber in &self.subscribers {
+                    let params = self.to_subscriber_params();
+                    let mutation = subscriber.on_reasoning_message_chunk_event(e, params).await?;
+                    mutations.push(mutation);
+                }
+            }
+            Event::ReasoningEncryptedValue(e) => {
+                for subscriber in &self.subscribers {
+                    let params = self.to_subscriber_params();
+                    let mutation = subscriber.on_reasoning_encrypted_value_event(e, params).await?;
+                    mutations.push(mutation);
+                }
+            }
+            Event::ActivitySnapshot(e) => {
+                for subscriber in &self.subscribers {
+                    let params = self.to_subscriber_params();
+                    let mutation = subscriber.on_activity_snapshot_event(e, params).await?;
+                    mutations.push(mutation);
+                }
+            }
+            Event::ActivityDelta(e) => {
+                for subscriber in &self.subscribers {
+                    let params = self.to_subscriber_params();
+                    let mutation = subscriber.on_activity_delta_event(e, params).await?;
+                    mutations.push(mutation);
+                }
+            }
         }
 
         for mutation in mutations {

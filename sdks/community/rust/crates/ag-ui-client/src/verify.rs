@@ -388,7 +388,16 @@ impl EventVerifier {
             | Event::StateDelta(_)
             | Event::MessagesSnapshot(_)
             | Event::Raw(_)
-            | Event::Custom(_) => {}
+            | Event::Custom(_)
+            | Event::ReasoningStart(_)
+            | Event::ReasoningEnd(_)
+            | Event::ReasoningMessageStart(_)
+            | Event::ReasoningMessageContent(_)
+            | Event::ReasoningMessageEnd(_)
+            | Event::ReasoningMessageChunk(_)
+            | Event::ReasoningEncryptedValue(_)
+            | Event::ActivitySnapshot(_)
+            | Event::ActivityDelta(_) => {}
         }
 
         Ok(())
