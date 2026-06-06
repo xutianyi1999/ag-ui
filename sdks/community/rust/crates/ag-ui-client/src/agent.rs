@@ -3,7 +3,7 @@ use std::collections::HashSet;
 
 use crate::core::JsonValue;
 use crate::core::types::{
-    AgentId, Context, Message, MessageId, RunAgentInput, RunId, ThreadId, Tool,
+    AgentId, Context, Message, MessageContent, MessageId, RunAgentInput, RunId, ThreadId, Tool,
 };
 use crate::core::{AgentState, FwdProps};
 use crate::event_handler::EventHandler;
@@ -95,7 +95,7 @@ where
     pub fn user(mut self, content: impl Into<String>) -> Self {
         self.messages.push(Message::User {
             id: MessageId::random(),
-            content: content.into(),
+            content: MessageContent::Text(content.into()),
             name: None,
             encrypted_value: None,
         });

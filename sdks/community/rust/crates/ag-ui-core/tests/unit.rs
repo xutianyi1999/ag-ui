@@ -2,9 +2,9 @@
 mod tests {
     use ag_ui_core::error::AgUiError;
     use ag_ui_core::types::{
-        AssistantMessage, Context, DeveloperMessage, FunctionCall, Message, MessageId, Role,
-        RunAgentInput, RunId, SystemMessage, ThreadId, Tool, ToolCall, ToolCallId, ToolMessage,
-        UserMessage,
+        AssistantMessage, Context, DeveloperMessage, FunctionCall, Message, MessageContent,
+        MessageId, Role, RunAgentInput, RunId, SystemMessage, ThreadId, Tool, ToolCall,
+        ToolCallId, ToolMessage, UserMessage,
     };
     use serde::{Deserialize, Serialize};
     use serde_json::json;
@@ -46,7 +46,7 @@ mod tests {
     fn test_message_serialization() {
         let user_msg = Message::User {
             id: MessageId::random(),
-            content: "Hello".to_string(),
+            content: MessageContent::Text("Hello".to_string()),
             name: None,
             encrypted_value: None,
         };
@@ -219,7 +219,7 @@ mod tests {
         match &messages[0] {
             Message::User { id, content, name, .. } => {
                 assert_eq!(id.to_string(), "00000000-0000-0000-0000-000000000000");
-                assert_eq!(content, "Hello!");
+                assert_eq!(*content, MessageContent::Text("Hello!".to_string()));
                 assert_eq!(*name, Some("Alice".to_string()));
             }
             _ => panic!("Wrong message type"),
