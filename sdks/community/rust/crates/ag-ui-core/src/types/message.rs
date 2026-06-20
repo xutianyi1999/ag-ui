@@ -237,6 +237,8 @@ pub struct ToolMessage {
     pub error: Option<String>,
     #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
     pub encrypted_value: Option<String>,
+    #[serde(rename = "renderId", skip_serializing_if = "Option::is_none")]
+    pub render_id: Option<String>,
 }
 
 impl ToolMessage {
@@ -252,6 +254,7 @@ impl ToolMessage {
             tool_call_id: tool_call_id.into(),
             error: None,
             encrypted_value: None,
+            render_id: None,
         }
     }
 
@@ -270,6 +273,8 @@ pub struct ActivityMessage {
     #[serde(rename = "activityType")]
     pub activity_type: String,
     pub content: JsonValue,
+    #[serde(rename = "renderId", skip_serializing_if = "Option::is_none")]
+    pub render_id: Option<String>,
 }
 
 impl ActivityMessage {
@@ -279,6 +284,7 @@ impl ActivityMessage {
             role: Role::Activity,
             activity_type,
             content,
+            render_id: None,
         }
     }
 }
@@ -292,6 +298,8 @@ pub struct ReasoningMessage {
     pub content: String,
     #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
     pub encrypted_value: Option<String>,
+    #[serde(rename = "renderId", skip_serializing_if = "Option::is_none")]
+    pub render_id: Option<String>,
 }
 
 impl ReasoningMessage {
@@ -301,6 +309,7 @@ impl ReasoningMessage {
             role: Role::Reasoning,
             content,
             encrypted_value: None,
+            render_id: None,
         }
     }
 
@@ -358,18 +367,24 @@ pub enum Message {
         error: Option<String>,
         #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
         encrypted_value: Option<String>,
+        #[serde(rename = "renderId", skip_serializing_if = "Option::is_none")]
+        render_id: Option<String>,
     },
     Activity {
         id: MessageId,
         #[serde(rename = "activityType")]
         activity_type: String,
         content: JsonValue,
+        #[serde(rename = "renderId", skip_serializing_if = "Option::is_none")]
+        render_id: Option<String>,
     },
     Reasoning {
         id: MessageId,
         content: String,
         #[serde(rename = "encryptedValue", skip_serializing_if = "Option::is_none")]
         encrypted_value: Option<String>,
+        #[serde(rename = "renderId", skip_serializing_if = "Option::is_none")]
+        render_id: Option<String>,
     },
 }
 
@@ -407,16 +422,19 @@ impl Message {
                 tool_call_id: ToolCallId::random(),
                 error: None,
                 encrypted_value: None,
+                render_id: None,
             },
             Role::Activity => Self::Activity {
                 id: id.into(),
                 activity_type: String::new(),
                 content: JsonValue::Null,
+                render_id: None,
             },
             Role::Reasoning => Self::Reasoning {
                 id: id.into(),
                 content: content.as_ref().to_string(),
                 encrypted_value: None,
+                render_id: None,
             },
         }
     }
